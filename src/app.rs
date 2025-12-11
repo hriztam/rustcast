@@ -80,6 +80,7 @@ pub fn get_installed_apps(dir: impl AsRef<Path>) -> Vec<App> {
             Some(App {
                 open_command: format!("open {}", path_str),
                 icon_path: None,
+                name_lc: name.to_lowercase(),
                 name,
             })
         })
@@ -92,6 +93,7 @@ pub struct App {
     open_command: String,
     icon_path: Option<PathBuf>,
     name: String,
+    name_lc: String,
 }
 
 impl App {
@@ -159,6 +161,8 @@ pub fn default_settings() -> Settings {
 #[derive(Debug, Clone)]
 pub struct Tile {
     query: String,
+    query_lc: String,
+    prev_query_lc: String,
     theme: Theme,
     results: Vec<App>,
     options: Vec<App>,
@@ -185,6 +189,8 @@ impl Tile {
             Self {
                 theme: Theme::KanagawaWave,
                 query: String::new(),
+                query_lc: String::new(),
+                prev_query_lc: String::new(),
                 results: vec![],
                 options: apps,
                 visible: true,
@@ -203,47 +209,50 @@ impl Tile {
             }
 
             Message::SearchQueryChanged(input, id) => {
+                self.query_lc = input.trim().to_lowercase();
                 self.query = input;
-                let mut results = vec![];
-
-                results.append(
-                    &mut self
-                        .options
-                        .iter()
-                        .filter(|x| {
-                            x.name.trim().to_lowercase() == self.query.trim().to_lowercase()
-                        })
-                        .map(|x| x.to_owned())
-                        .collect(),
-                );
-
-                results.append(
-                    &mut self
-                        .options
-                        .iter()
-                        .filter(|x| {
-                            x.name.to_lowercase() != self.query.to_lowercase()
-                                && x.name.to_lowercase().contains(&self.query.to_lowercase())
-                        })
-                        .map(|x| x.to_owned())
-                        .collect(),
-                );
-
-                self.results = results;
-
-                let query_count = self.query.chars().count();
-                if query_count == 0 {
-                    self.results = vec![];
+                let prev_size = self.results.len();
+                if self.query_lc.is_empty() {
+                    return Task::none();
                 }
 
-                let max_elem = min(5, self.results.len());
-                window::resize(
-                    id,
-                    iced::Size {
-                        width: WINDOW_WIDTH,
-                        height: ((max_elem * 55) + DEFAULT_WINDOW_HEIGHT as usize) as f32,
-                    },
-                )
+                let filter_vec = if self.query_lc.starts_with(&self.prev_query_lc) {
+                    self.prev_query_lc = self.query_lc.to_owned();
+                    &self.results.clone()
+                } else {
+                    &self.options
+                };
+
+                self.results = vec![];
+                self.results.extend(
+                    &mut filter_vec
+                        .iter()
+                        .filter(|x| x.name_lc == self.query_lc)
+                        .map(|x| x.to_owned()),
+                );
+
+                self.results.extend(
+                    &mut filter_vec
+                        .iter()
+                        .filter(|x| {
+                            x.name_lc != self.query_lc && x.name_lc.contains(&self.query_lc)
+                        })
+                        .map(|x| x.to_owned()),
+                );
+                let new_length = self.results.len();
+
+                let max_elem = min(5, new_length);
+                if prev_size != new_length {
+                    window::resize(
+                        id,
+                        iced::Size {
+                            width: WINDOW_WIDTH,
+                            height: ((max_elem * 55) + DEFAULT_WINDOW_HEIGHT as usize) as f32,
+                        },
+                    )
+                } else {
+                    Task::none()
+                }
             }
 
             Message::KeyPressed(hk_id) => match Hotkeys::from_u32_hotkey_id(hk_id) {
@@ -326,11 +335,7 @@ impl Tile {
             window::close_events().map(Message::HideWindow),
             window::resize_events().map(|_| Message::_Nothing),
             keyboard::listen().filter_map(|event| {
-                if let keyboard::Event::KeyPressed {
-                    key,
-                    ..
-                } = event
-                {
+                if let keyboard::Event::KeyPressed { key, .. } = event {
                     match key {
                         keyboard::Key::Named(Named::Escape) => Some(Message::KeyPressed(65598)),
                         _ => None,
