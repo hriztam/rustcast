@@ -30,7 +30,7 @@ use std::time::Duration;
 
 const WINDOW_WIDTH: f32 = 500.;
 const DEFAULT_WINDOW_HEIGHT: f32 = 65.;
-const ERR_LOG_PATH: &'static str = "/tmp/rustscan-err.log";
+const ERR_LOG_PATH: &str = "/tmp/rustscan-err.log";
 
 fn log_error(msg: &str) {
     if let Ok(mut file) = File::options().create(true).append(true).open(ERR_LOG_PATH) {
@@ -232,13 +232,13 @@ impl Tile {
                 }
 
                 let max_elem = min(5, self.results.len());
-                return window::resize(
+                window::resize(
                     id,
                     iced::Size {
                         width: WINDOW_WIDTH,
                         height: ((max_elem * 55) + DEFAULT_WINDOW_HEIGHT as usize) as f32,
                     },
-                );
+                )
             }
 
             Message::KeyPressed(hk_id) => match Hotkeys::from_u32_hotkey_id(hk_id) {
@@ -253,7 +253,7 @@ impl Tile {
                         )
                     } else {
                         let to_close = window::latest().map(|x| x.unwrap());
-                        to_close.map(|x| Message::HideWindow(x))
+                        to_close.map(Message::HideWindow)
                     }
                 }
                 _ => Task::none(),
@@ -261,10 +261,10 @@ impl Tile {
 
             Message::RunShellCommand(shell_command) => {
                 let cmd = shell_command.split_once(" ").unwrap_or(("", ""));
-                Command::new(&cmd.0).arg(cmd.1).spawn().ok();
+                Command::new(cmd.0).arg(cmd.1).spawn().ok();
                 window::latest()
                     .map(|x| x.unwrap())
-                    .map(|x| Message::HideWindow(x))
+                    .map(Message::HideWindow)
             }
 
             Message::HideWindow(a) => {
@@ -292,7 +292,7 @@ impl Tile {
                         Message::_Nothing
                     } else {
                         Message::RunShellCommand(
-                            self.results.get(0).unwrap().to_owned().open_command,
+                            self.results.first().unwrap().to_owned().open_command,
                         )
                     }
                 })
@@ -319,7 +319,7 @@ impl Tile {
     pub fn subscription(&self) -> Subscription<Message> {
         Subscription::batch([
             Subscription::run(handle_hotkeys),
-            window::close_events().map(|a| Message::HideWindow(a)),
+            window::close_events().map(Message::HideWindow),
             window::resize_events().map(|_| Message::_Nothing),
             keyboard::listen().filter_map(|event| {
                 #[allow(unused)]
@@ -365,11 +365,10 @@ fn handle_hotkeys() -> impl futures::Stream<Item = Message> {
     stream::channel(100, async |mut output| {
         let receiver = GlobalHotKeyEvent::receiver();
         loop {
-            if let Ok(event) = receiver.recv() {
-                if event.state == HotKeyState::Pressed {
+            if let Ok(event) = receiver.recv()
+                && event.state == HotKeyState::Pressed {
                     output.try_send(Message::KeyPressed(event.id)).unwrap();
                 }
-            }
             tokio::time::sleep(Duration::from_millis(10)).await;
         }
     })
