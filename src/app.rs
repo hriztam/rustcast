@@ -246,7 +246,7 @@ impl Tile {
                     &mut filter_vec
                         .iter()
                         .filter(|x| {
-                            x.name_lc != self.query_lc && x.name_lc.contains(&self.query_lc)
+                            x.name_lc != self.query_lc && x.name_lc.starts_with(&self.query_lc)
                         })
                         .map(|x| x.to_owned()),
                 );
