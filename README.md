@@ -19,9 +19,7 @@
 ### Planned:
 
 - [ ] Tray Icon for quitting the app 12/12/2025
-- [ ] Image icons next to the text 13/12/2025
 - [ ] Select the options using arrow keys 13/12/2025
-- [ ] Scrollable options 12/12/2025
 - [ ] Calculator 15/12/2025
 - [ ] Popup note-taking 18/12/2025
 - [ ] Clipboard History 20/12/2025
@@ -36,6 +34,8 @@
 - [x] Search through apps 11/11/2025
 - [x] Generate [randomvar](https://github.com/Nazeofel) (between 0 and 100) via
       the app. Simply type `randomvar` and it will generate the num for you
+- [x] Image icons next to the text 13/12/2025
+- [x] Scrollable options 12/12/2025
 
 ## Motivations:
 
