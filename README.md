@@ -4,7 +4,7 @@
 > that people can use to do many things, like opening apps, calculators,
 > quick-notes, etc.
 
-![RustCast Demo PreRelease V1](docs/rustcast_v1_preview.png)
+![RustCast Demo PreRelease V1](docs/rustcast-demo-with-v0_1_0.png)
 
 ## Installation:
 
