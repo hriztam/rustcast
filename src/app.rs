@@ -128,7 +128,6 @@ pub fn get_installed_apps(dir: impl AsRef<Path>) -> Vec<App> {
                                 .strip_suffix("</string>")
                                 .unwrap_or("")
                         });
-                    dbg!(icon_line);
 
                     handle_from_icns(Path::new(&format!(
                         "{}/Contents/Resources/{}",
