@@ -48,10 +48,10 @@ bit wonky, and will be fixed in the upcoming releases
 - [ ] Calculator 15/12/2025
 - [ ] Popup note-taking 18/12/2025
 - [ ] Clipboard History 20/12/2025
-- [ ] Plugin Support 31/12/2025
+- [ ] Plugin Support 31/12/2025 (Partially implemented on 15/12/2025)
 - [ ] Blur / transparent background (Partially implemented on 13/12/2025)
-- [ ] Spotify control - Ability to control spotify via the app
 - [ ] Hyperkey - Map CMD + OPT + CTRL + SHIFT to a physical key
+- [ ] Cross platform support - (1/2/2026)
 
 ### Finished:
 
@@ -63,6 +63,7 @@ bit wonky, and will be fixed in the upcoming releases
 - [x] Scrollable options 12/12/2025
 - [x] Customisable themes (13/12/2025)
   - [x] Configurable colours
+- [x] Spotify control - Ability to control spotify via the app
 
 ### Not Planned:
 
