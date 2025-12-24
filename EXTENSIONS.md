@@ -17,5 +17,6 @@ RustCast.
      extensions, not just in rustcast, but in all projects.
 
 1. Using WASM:
-   - The way Zed does their extension support. Maybe I could also use that? 
-   - Their article can be found [here](https://zed.dev/blog/zed-decoded-extensions)
+   - The way Zed does their extension support. Maybe I could also use that?
+   - Their article can be found
+     [here](https://zed.dev/blog/zed-decoded-extensions)
