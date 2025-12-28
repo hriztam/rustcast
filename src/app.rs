@@ -61,10 +61,10 @@ impl App {
             },
         ]
     }
-    pub fn render(&self, show_icons: bool) -> impl Into<iced::Element<'_, Message>> {
+    pub fn render(&self, theme: &crate::config::Theme) -> impl Into<iced::Element<'_, Message>> {
         let mut tile = Row::new().width(Fill).height(55);
 
-        if show_icons {
+        if theme.show_icons {
             if let Some(icon) = &self.icons {
                 tile = tile
                     .push(Viewer::new(icon).height(35).width(35))
@@ -83,6 +83,7 @@ impl App {
                 Text::new(&self.name)
                     .height(Fill)
                     .width(Fill)
+                    .color(theme.text_color(1.))
                     .align_y(Vertical::Center),
             )
             .on_press(Message::RunFunction(self.open_command.clone()))
@@ -98,7 +99,7 @@ impl App {
         );
 
         tile = tile
-            .push(container(Text::new(&self.desc)).padding(15))
+            .push(container(Text::new(&self.desc).color(theme.text_color(0.4))).padding(15))
             .width(Fill);
 
         container(tile)
@@ -204,7 +205,7 @@ impl Tile {
                 frontmost: None,
                 focused: false,
                 config: config.clone(),
-                theme: config.theme.to_owned().to_iced_theme(),
+                theme: config.theme.to_owned().into(),
                 open_hotkey_id: keybind_id,
             },
             Task::batch([open.map(|_| Message::OpenWindow)]),
@@ -394,8 +395,7 @@ impl Tile {
 
             let mut search_results = Column::new();
             for result in &self.results {
-                search_results =
-                    search_results.push(result.render(self.config.theme.clone().show_icons));
+                search_results = search_results.push(result.render(&self.config.theme));
             }
 
             Column::new()
