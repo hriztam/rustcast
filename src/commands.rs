@@ -1,16 +1,17 @@
 use std::process::Command;
 
-use arboard::{Clipboard, ImageData};
+use arboard::Clipboard;
 use objc2_app_kit::NSWorkspace;
 use objc2_foundation::NSURL;
 
-use crate::{config::Config, utils::get_time_since_epoch};
+use crate::{clipboard::ClipBoardContentType, config::Config};
 
 #[derive(Debug, Clone)]
 pub enum Function {
     OpenApp(String),
     RunShellCommand(Vec<String>),
     RandomVar(i32),
+    CopyToClipboard(ClipBoardContentType),
     GoogleSearch(String),
     OpenPrefPane,
     Quit,
@@ -50,6 +51,15 @@ impl Function {
                 );
             }
 
+            Function::CopyToClipboard(clipboard_content) => match clipboard_content {
+                ClipBoardContentType::Text(text) => {
+                    Clipboard::new().unwrap().set_text(text).ok();
+                }
+                ClipBoardContentType::Image(img) => {
+                    Clipboard::new().unwrap().set_image(img.to_owned_img()).ok();
+                }
+            },
+
             Function::OpenPrefPane => {
                 Command::new("open")
                     .arg(
@@ -60,42 +70,6 @@ impl Function {
                     .ok();
             }
             Function::Quit => std::process::exit(0),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ClipboardContent {
-    pub content_type: ClipBoardContentType,
-    pub copied_since_epoch: i64,
-}
-
-#[derive(Debug, Clone)]
-pub enum ClipBoardContentType {
-    Text(String),
-    Image(ImageData<'static>),
-}
-
-impl PartialEq for ClipBoardContentType {
-    fn eq(&self, other: &Self) -> bool {
-        if let Self::Text(a) = self
-            && let Self::Text(b) = other
-        {
-            return a == b;
-        } else if let Self::Image(image_data) = self
-            && let Self::Image(other_image_data) = other
-        {
-            return image_data.bytes == other_image_data.bytes;
-        }
-        false
-    }
-}
-
-impl ClipboardContent {
-    pub fn from_content_type(content_type: ClipBoardContentType) -> ClipboardContent {
-        Self {
-            content_type,
-            copied_since_epoch: get_time_since_epoch(),
         }
     }
 }

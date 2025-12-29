@@ -1,9 +1,10 @@
-use crate::commands::{ClipBoardContentType, ClipboardContent, Function};
+use crate::clipboard::ClipBoardContentType;
+use crate::commands::Function;
 use crate::config::Config;
 use crate::macos::{focus_this_app, transform_process_to_ui_element};
 use crate::{macos, utils::get_installed_apps};
 
-use arboard::{Clipboard, ImageData};
+use arboard::Clipboard;
 use global_hotkey::{GlobalHotKeyEvent, HotKeyState};
 use iced::futures::SinkExt;
 use iced::{
@@ -14,7 +15,7 @@ use iced::{
     stream,
     widget::{
         Button, Column, Row, Text, container, image::Viewer, operation, scrollable, space,
-        text::LineHeight, text_input,
+        text_input,
     },
     window::{self, Id, Settings},
 };
@@ -56,6 +57,7 @@ impl App {
             },
         ]
     }
+
     pub fn render(&self, show_icons: bool) -> impl Into<iced::Element<'_, Message>> {
         let mut tile = Row::new().width(Fill).height(55);
 
@@ -106,6 +108,12 @@ impl App {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum Page {
+    Main,
+    ClipboardHistory,
+}
+
 #[derive(Debug, Clone)]
 pub enum Message {
     OpenWindow,
@@ -118,7 +126,6 @@ pub enum Message {
     ClearSearchQuery,
     ReloadConfig,
     ClipboardHistory(ClipBoardContentType),
-    ShowClipboardHistory,
     _Nothing,
 }
 
@@ -151,7 +158,8 @@ pub struct Tile {
     frontmost: Option<Retained<NSRunningApplication>>,
     config: Config,
     open_hotkey_id: u32,
-    clipboard_content: Vec<ClipboardContent>,
+    clipboard_content: Vec<ClipBoardContentType>,
+    page: Page,
 }
 
 impl Tile {
@@ -202,6 +210,7 @@ impl Tile {
                 theme: config.theme.to_owned().to_iced_theme(),
                 open_hotkey_id: keybind_id,
                 clipboard_content: vec![],
+                page: Page::Main,
             },
             Task::batch([open.map(|_| Message::OpenWindow)]),
         )
@@ -255,18 +264,31 @@ impl Tile {
                         id,
                         iced::Size::new(WINDOW_WIDTH, 55. + DEFAULT_WINDOW_HEIGHT),
                     );
+                } else if self.query_lc == "cbhist" {
+                    self.page = Page::ClipboardHistory
+                } else if self.query_lc == "main" {
+                    self.page = Page::Main
                 }
 
                 self.handle_search_query_changed();
                 let new_length = self.results.len();
 
                 let max_elem = min(5, new_length);
-                if prev_size != new_length {
+                if prev_size != new_length && self.page == Page::Main {
                     window::resize(
                         id,
                         iced::Size {
                             width: WINDOW_WIDTH,
                             height: ((max_elem * 55) + DEFAULT_WINDOW_HEIGHT as usize) as f32,
+                        },
+                    )
+                } else if self.page == Page::ClipboardHistory {
+                    let element_count = min(self.clipboard_content.len(), 5);
+                    window::resize(
+                        id,
+                        iced::Size {
+                            width: WINDOW_WIDTH,
+                            height: ((element_count * 55) + DEFAULT_WINDOW_HEIGHT as usize) as f32,
                         },
                     )
                 } else {
@@ -353,12 +375,9 @@ impl Tile {
             }
 
             Message::ClipboardHistory(clip_content) => {
-                self.clipboard_content
-                    .push(ClipboardContent::from_content_type(clip_content));
+                self.clipboard_content.push(clip_content);
                 Task::none()
             }
-
-            Message::ShowClipboardHistory => Task::none(),
 
             Message::_Nothing => Task::none(),
         }
@@ -378,19 +397,32 @@ impl Tile {
                 })
                 .id("query")
                 .width(Fill)
-                .padding(20)
-                .line_height(LineHeight::Relative(1.5));
+                .padding(20);
 
-            let mut search_results = Column::new();
-            for result in &self.results {
-                search_results =
-                    search_results.push(result.render(self.config.theme.clone().show_icons));
+            match self.page {
+                Page::Main => {
+                    let mut search_results = Column::new();
+                    for result in &self.results {
+                        search_results =
+                            search_results.push(result.render(self.config.theme.show_icons));
+                    }
+
+                    Column::new()
+                        .push(title_input)
+                        .push(scrollable(search_results))
+                        .into()
+                }
+                Page::ClipboardHistory => {
+                    let mut clipboard_history = Column::new();
+                    for result in &self.clipboard_content {
+                        clipboard_history = clipboard_history.push(result.render_clipboard_item());
+                    }
+                    Column::new()
+                        .push(title_input)
+                        .push(scrollable(clipboard_history))
+                        .into()
+                }
             }
-
-            Column::new()
-                .push(title_input)
-                .push(scrollable(search_results))
-                .into()
         } else {
             space().into()
         }

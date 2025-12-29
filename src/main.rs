@@ -1,4 +1,5 @@
 mod app;
+mod clipboard;
 mod commands;
 mod config;
 mod macos;
