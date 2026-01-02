@@ -5,10 +5,9 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.100"
-applications = "0.3.1"
 arboard = "3.6.1"
 global-hotkey = "0.7.0"
-iced = { version = "0.14.0", features = ["image", "smol", "tokio"] }
+iced = { version = "0.14.0", features = ["image", "tokio"] }
 icns = "0.3.1"
 image = "0.25.9"
 objc2 = "0.6.3"
