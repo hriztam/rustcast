@@ -61,6 +61,15 @@ impl App {
                 name: format!("RustCast Version: {app_version}"),
                 name_lc: "version".to_string(),
             },
+            App {
+                open_command: Function::OpenApp(
+                    "/System/Library/CoreServices/Finder.app".to_string(),
+                ),
+                desc: RUSTCAST_DESC_NAME.to_string(),
+                icons: None,
+                name: "Finder".to_string(),
+                name_lc: "finder".to_string(),
+            },
         ]
     }
 
