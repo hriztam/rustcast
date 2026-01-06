@@ -66,6 +66,13 @@ impl App {
                 name_lc: "clipboard".to_string(),
             },
             App {
+                open_command: AppCommand::Message(Message::ReloadConfig),
+                desc: RUSTCAST_DESC_NAME.to_string(),
+                icons: None,
+                name: "Reload RustCast".to_string(),
+                name_lc: "refresh".to_string(),
+            },
+            App {
                 open_command: AppCommand::Display,
                 desc: RUSTCAST_DESC_NAME.to_string(),
                 icons: None,

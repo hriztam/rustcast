@@ -98,9 +98,16 @@ impl Tile {
             Subscription::run(handle_clipboard_history),
             window::close_events().map(Message::HideWindow),
             keyboard::listen().filter_map(|event| {
-                if let keyboard::Event::KeyPressed { key, .. } = event {
+                if let keyboard::Event::KeyPressed { key, modifiers, .. } = event {
                     match key {
                         keyboard::Key::Named(Named::Escape) => Some(Message::KeyPressed(65598)),
+                        keyboard::Key::Character(chr) => {
+                            if modifiers.command() && chr.to_string().to_lowercase() == "r" {
+                                Some(Message::ReloadConfig)
+                            } else {
+                                None
+                            }
+                        }
                         _ => None,
                     }
                 } else {
@@ -184,7 +191,7 @@ impl Tile {
 /// This is the subscription function that handles hot reloading of the config
 fn handle_hot_reloading() -> impl futures::Stream<Item = Message> {
     stream::channel(100, async |mut output| {
-        let content = fs::read_to_string(
+        let mut content = fs::read_to_string(
             std::env::var("HOME").unwrap_or("".to_owned()) + "/.config/rustcast/config.toml",
         )
         .unwrap_or("".to_string());
@@ -195,6 +202,7 @@ fn handle_hot_reloading() -> impl futures::Stream<Item = Message> {
             .unwrap_or("".to_string());
 
             if current_content != content {
+                content = current_content;
                 output.send(Message::ReloadConfig).await.unwrap();
             }
             tokio::time::sleep(Duration::from_millis(10)).await;

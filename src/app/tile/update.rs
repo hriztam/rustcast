@@ -6,6 +6,9 @@ use std::time::Duration;
 use iced::Task;
 use iced::widget::operation;
 use iced::window;
+use rayon::iter::IntoParallelRefIterator;
+use rayon::iter::ParallelIterator;
+use rayon::slice::ParallelSliceMut;
 
 use crate::app::DEFAULT_WINDOW_HEIGHT;
 use crate::app::RUSTCAST_DESC_NAME;
@@ -13,8 +16,11 @@ use crate::app::WINDOW_WIDTH;
 use crate::app::apps::App;
 use crate::app::apps::AppCommand;
 use crate::app::default_settings;
+use crate::app::tile::elm::default_app_paths;
 use crate::calculator::Expression;
 use crate::commands::Function;
+use crate::config::Config;
+use crate::utils::get_installed_apps;
 use crate::{
     app::{Message, Page, tile::Tile},
     macos::focus_this_app,
@@ -138,7 +144,7 @@ pub fn handle_update(tile: &mut Tile, message: Message) -> Task<Message> {
         }
 
         Message::ReloadConfig => {
-            tile.config = toml::from_str(
+            let new_config: Config = toml::from_str(
                 &fs::read_to_string(
                     std::env::var("HOME").unwrap_or("".to_owned())
                         + "/.config/rustcast/config.toml",
@@ -146,6 +152,20 @@ pub fn handle_update(tile: &mut Tile, message: Message) -> Task<Message> {
                 .unwrap_or("".to_owned()),
             )
             .unwrap();
+
+            let mut new_options: Vec<App> = default_app_paths()
+                .par_iter()
+                .map(|path| get_installed_apps(path, new_config.theme.show_icons))
+                .flatten()
+                .collect();
+
+            new_options.extend(new_config.shells.iter().map(|x| x.to_app()));
+            new_options.extend(App::basic_apps());
+            new_options.par_sort_by_key(|x| x.name.len());
+
+            tile.theme = new_config.theme.to_owned().into();
+            tile.config = new_config;
+            tile.options = new_options;
 
             Task::none()
         }

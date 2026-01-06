@@ -11,6 +11,19 @@ use rayon::{
     slice::ParallelSliceMut,
 };
 
+pub fn default_app_paths() -> Vec<String> {
+    let user_local_path = std::env::var("HOME").unwrap() + "/Applications/";
+
+    let paths = vec![
+        "/Applications/".to_string(),
+        user_local_path,
+        "/System/Applications/".to_string(),
+        "/System/Applications/Utilities/".to_string(),
+    ];
+
+    paths
+}
+
 use crate::app::apps::AppCommand;
 use crate::{
     app::{Message, Page, apps::App, default_settings, tile::Tile},
@@ -31,14 +44,7 @@ pub fn new(keybind_id: u32, config: &Config) -> (Tile, Task<Message>) {
 
     let store_icons = config.theme.show_icons;
 
-    let user_local_path = std::env::var("HOME").unwrap() + "/Applications/";
-
-    let paths = vec![
-        "/Applications/",
-        user_local_path.as_str(),
-        "/System/Applications/",
-        "/System/Applications/Utilities/",
-    ];
+    let paths = default_app_paths();
 
     let mut options: Vec<App> = paths
         .par_iter()
