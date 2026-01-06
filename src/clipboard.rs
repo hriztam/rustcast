@@ -7,7 +7,7 @@ use iced::{
     widget::{Button, Row, Text, container},
 };
 
-use crate::{app::Message, commands::Function};
+use crate::{app::Message, commands::Function, config::Theme as ConfigTheme};
 
 /// The kinds of clipboard content that rustcast can handle and their contents
 #[derive(Debug, Clone)]
@@ -18,7 +18,10 @@ pub enum ClipBoardContentType {
 
 impl ClipBoardContentType {
     /// Returns the iced element for rendering the clipboard item
-    pub fn render_clipboard_item(&self) -> impl Into<iced::Element<'_, Message>> {
+    pub fn render_clipboard_item(
+        &self,
+        theme: &ConfigTheme,
+    ) -> impl Into<iced::Element<'_, Message>> {
         let mut tile = Row::new().width(Fill).height(55);
 
         let text = match self {
@@ -29,6 +32,7 @@ impl ClipBoardContentType {
         tile = tile.push(
             Button::new(
                 Text::new(text.to_owned())
+                    .font(theme.font())
                     .height(Fill)
                     .width(Fill)
                     .align_y(Vertical::Center),

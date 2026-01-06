@@ -81,6 +81,7 @@ pub fn view(tile: &Tile, wid: window::Id) -> Element<'_, Message> {
         let title_input = text_input(tile.config.placeholder.as_str(), &tile.query)
             .on_input(move |a| Message::SearchQueryChanged(a, wid))
             .on_paste(move |a| Message::SearchQueryChanged(a, wid))
+            .font(tile.config.theme.font())
             .on_submit_maybe({
                 if !tile.results.is_empty() {
                     match tile.results.first().unwrap().to_owned().open_command {
@@ -115,7 +116,8 @@ pub fn view(tile: &Tile, wid: window::Id) -> Element<'_, Message> {
             Page::ClipboardHistory => {
                 let mut clipboard_history = Column::new();
                 for result in &tile.clipboard_content {
-                    clipboard_history = clipboard_history.push(result.render_clipboard_item());
+                    clipboard_history =
+                        clipboard_history.push(result.render_clipboard_item(&tile.config.theme));
                 }
                 let scrollable = Scrollable::with_direction(clipboard_history, scrollbar_direction);
                 Column::new().push(title_input).push(scrollable).into()
