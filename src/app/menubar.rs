@@ -111,21 +111,11 @@ fn open_item(hotkey: (Option<Modifiers>, Code)) -> MenuItem {
 }
 
 fn open_github_item() -> MenuItem {
-    MenuItem::with_id(
-        "open_github_page",
-        "Star on Github",
-        true,
-        None
-    )
+    MenuItem::with_id("open_github_page", "Star on Github", true, None)
 }
 
 fn open_issue_item() -> MenuItem {
-    MenuItem::with_id(
-        "open_issue_page",
-        "Report an Issue",
-        true,
-        None
-    )
+    MenuItem::with_id("open_issue_page", "Report an Issue", true, None)
 }
 
 fn refresh_item() -> MenuItem {
@@ -150,12 +140,7 @@ fn open_settings_item() -> MenuItem {
 }
 
 fn get_help_item() -> MenuItem {
-    MenuItem::with_id(
-        "open_help_page",
-        "Help",
-        true,
-        None
-    )
+    MenuItem::with_id("open_help_page", "Help", true, None)
 }
 
 fn quit_item() -> PredefinedMenuItem {

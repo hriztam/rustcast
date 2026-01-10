@@ -191,10 +191,10 @@ pub fn open_settings() {
 pub fn open_url(url: &str) {
     let url = url.to_owned();
     thread::spawn(move || {
-        NSWorkspace::new().openURL(&NSURL::URLWithString_relativeToURL(
-            &objc2_foundation::NSString::from_str(&url),
-            None,
-        ).unwrap());
+        NSWorkspace::new().openURL(
+            &NSURL::URLWithString_relativeToURL(&objc2_foundation::NSString::from_str(&url), None)
+                .unwrap(),
+        );
     });
 }
 
