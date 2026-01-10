@@ -49,7 +49,7 @@ fn get_image() -> DynamicImage {
     let image_path = if cfg!(debug_assertions) {
         "docs/icon.png"
     } else {
-        "../Resources/icon.png"
+        "/Applications/Rustcast.app/Contents/Resources/icon.png"
     };
 
     let image = ImageReader::open(image_path).unwrap().decode().unwrap();
