@@ -184,13 +184,16 @@ pub fn handle_update(tile: &mut Tile, message: Message) -> Task<Message> {
             if prev_size != new_length && tile.page == Page::Main {
                 std::thread::sleep(Duration::from_millis(30));
 
-                window::resize(
-                    id,
-                    iced::Size {
-                        width: WINDOW_WIDTH,
-                        height: ((max_elem * 55) + DEFAULT_WINDOW_HEIGHT as usize) as f32,
-                    },
-                )
+                Task::batch([
+                    window::resize(
+                        id,
+                        iced::Size {
+                            width: WINDOW_WIDTH,
+                            height: ((max_elem * 55) + DEFAULT_WINDOW_HEIGHT as usize) as f32,
+                        },
+                    ),
+                    Task::done(Message::ChangeFocus(ArrowKey::ArrowLeft)),
+                ])
             } else if tile.page == Page::ClipboardHistory {
                 let element_count = min(tile.clipboard_content.len(), 5);
                 window::resize(
