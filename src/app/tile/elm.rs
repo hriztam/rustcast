@@ -38,10 +38,7 @@ pub fn default_app_paths() -> Vec<String> {
 }
 
 /// Initialise the base window
-pub fn new(
-    hotkey: HotKey,
-    config: &Config,
-) -> (Tile, Task<Message>) {
+pub fn new(hotkey: HotKey, config: &Config) -> (Tile, Task<Message>) {
     let (id, open) = window::open(default_settings());
 
     let open = open.discard().chain(window::run(id, |handle| {

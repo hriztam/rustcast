@@ -79,10 +79,7 @@ pub struct Tile {
 
 impl Tile {
     /// Initialise the base window
-    pub fn new(
-        hotkey: HotKey,
-        config: &Config,
-    ) -> (Self, Task<Message>) {
+    pub fn new(hotkey: HotKey, config: &Config) -> (Self, Task<Message>) {
         elm::new(hotkey, config)
     }
 
