@@ -2,6 +2,7 @@
 use std::cmp::min;
 use std::fs;
 use std::path::Path;
+use std::thread;
 use std::time::Duration;
 
 use global_hotkey::hotkey::HotKey;
@@ -42,6 +43,14 @@ pub fn handle_update(tile: &mut Tile, message: Message) -> Task<Message> {
             focus_this_app();
             tile.focused = true;
             tile.visible = true;
+            Task::none()
+        }
+        Message::HideTrayIcon => {
+            tile.tray_icon = None;
+            tile.config.show_trayicon = false;
+            let home = std::env::var("HOME").unwrap();
+            let confg_str = toml::to_string(&tile.config).unwrap();
+            thread::spawn(move || fs::write(home + "/.config/rustcast/config.toml", confg_str));
             Task::none()
         }
 
@@ -203,12 +212,17 @@ pub fn handle_update(tile: &mut Tile, message: Message) -> Task<Message> {
 
         Message::ChangeFocus(key) => {
             let u32_len = tile.results.len() as u32;
-            match key {
-                ArrowKey::ArrowDown => tile.focus_id = (tile.focus_id + 1) % u32_len,
-                ArrowKey::ArrowUp => tile.focus_id = (tile.focus_id + u32_len - 1) % u32_len,
-                _ => {}
+            if u32_len > 0 {
+                match key {
+                    ArrowKey::ArrowDown => tile.focus_id = (tile.focus_id + 1) % u32_len,
+                    ArrowKey::ArrowUp => tile.focus_id = (tile.focus_id + u32_len - 1) % u32_len,
+                    _ => {}
+                }
+
+                operation::focus(format!("result-{}", tile.focus_id))
+            } else {
+                Task::none()
             }
-            operation::focus(format!("result-{}", tile.focus_id))
         }
 
         Message::OpenFocused => match tile.results.get(tile.focus_id as usize) {
