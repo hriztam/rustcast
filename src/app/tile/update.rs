@@ -26,10 +26,12 @@ use crate::app::menubar::menu_icon;
 use crate::app::tile::AppIndex;
 use crate::app::tile::elm::default_app_paths;
 use crate::calculator::Expression;
+use crate::clipboard::ClipBoardContentType;
 use crate::commands::Function;
 use crate::config::Config;
 use crate::haptics::HapticPattern;
 use crate::haptics::perform_haptic;
+use crate::unit_conversion;
 use crate::utils::get_installed_apps;
 use crate::utils::is_valid_url;
 use crate::{
@@ -166,6 +168,33 @@ pub fn handle_update(tile: &mut Tile, message: Message) -> Task<Message> {
                     name: res.eval().to_string(),
                     name_lc: "".to_string(),
                 });
+            } else if tile.results.is_empty()
+                && let Some(conversions) = unit_conversion::convert_query(&tile.query)
+            {
+                tile.results = conversions
+                    .into_iter()
+                    .map(|conversion| {
+                        let source = format!(
+                            "{} {}",
+                            unit_conversion::format_number(conversion.source_value),
+                            conversion.source_unit.name
+                        );
+                        let target = format!(
+                            "{} {}",
+                            unit_conversion::format_number(conversion.target_value),
+                            conversion.target_unit.name
+                        );
+                        App {
+                            open_command: AppCommand::Function(Function::CopyToClipboard(
+                                ClipBoardContentType::Text(target.clone()),
+                            )),
+                            desc: source,
+                            icons: None,
+                            name: target,
+                            name_lc: String::new(),
+                        }
+                    })
+                    .collect();
             } else if tile.results.is_empty() && is_valid_url(&tile.query) {
                 tile.results.push(App {
                     open_command: AppCommand::Function(Function::OpenWebsite(tile.query.clone())),
